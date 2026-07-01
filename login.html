@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grand Cru · Acesso</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@700;900&display=swap');
+:root {
+  --wine: #6B1A2B;
+  --wine-d: #4A0F1C;
+  --gold: #C9A84C;
+  --cream: #FAF7F2;
+  --border: #DDD5C8;
+  --ink: #1C1C1C;
+  --ink-m: #4A4A4A;
+  --ink-l: #8C8C8C;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--wine-d);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.card {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 380px;
+  padding: 40px 36px 36px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35);
+}
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  color: var(--gold);
+  letter-spacing: .04em;
+  text-align: center;
+  margin-bottom: 6px;
+}
+.subtitle {
+  font-size: 11px;
+  color: var(--ink-l);
+  text-align: center;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+}
+label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-m);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+  margin-top: 18px;
+}
+label:first-of-type { margin-top: 0; }
+input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+  transition: border-color .2s;
+}
+input:focus {
+  border-color: var(--wine);
+}
+.btn {
+  width: 100%;
+  margin-top: 28px;
+  padding: 12px;
+  background: var(--wine);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: background .2s;
+}
+.btn:hover:not(:disabled) { background: var(--wine-d); }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+.error-msg {
+  margin-top: 16px;
+  padding: 10px 12px;
+  background: #FDECEA;
+  border: 1px solid #F5C6CB;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #8B0000;
+  display: none;
+}
+.error-msg.visible { display: block; }
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 28px 0 0;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">Grand Cru · Potencial On Trade</div>
+  <div class="subtitle">Acesso restrito</div>
+
+  <label for="email">E-mail</label>
+  <input type="email" id="email" autocomplete="email" placeholder="seu@email.com" />
+
+  <label for="password">Senha</label>
+  <input type="password" id="password" autocomplete="current-password" placeholder="••••••••" />
+
+  <button class="btn" id="btn-login">Entrar</button>
+
+  <div class="error-msg" id="error-msg" role="alert"></div>
+</div>
+
+<script>
+(function () {
+  var btn = document.getElementById('btn-login');
+  var errDiv = document.getElementById('error-msg');
+
+  function showError(msg) {
+    errDiv.textContent = msg;
+    errDiv.classList.add('visible');
+  }
+
+  function clearError() {
+    errDiv.textContent = '';
+    errDiv.classList.remove('visible');
+  }
+
+  async function doLogin() {
+    clearError();
+    var email = document.getElementById('email').value.trim();
+    var password = document.getElementById('password').value;
+
+    if (!email || !password) {
+      showError('Preencha e-mail e senha.');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Entrando…';
+
+    try {
+      var res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: email, password: password })
+      });
+
+      if (res.ok) {
+        window.location.replace('/');
+        return;
+      }
+
+      var data = {};
+      try { data = await res.json(); } catch (_) {}
+      showError(data.error || 'Erro ao autenticar. Tente novamente.');
+    } catch (e) {
+      showError('Falha de rede. Verifique sua conexão.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Entrar';
+    }
+  }
+
+  btn.addEventListener('click', doLogin);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') doLogin();
+  });
+})();
+</script>
+</body>
+</html>
